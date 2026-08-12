@@ -4,6 +4,38 @@
 
 ---
 
+## Live Deployment
+
+The API is deployed on Render:
+
+**Base URL:** https://gogig-api.onrender.com
+
+### Health Check
+
+GET:
+
+https://gogig-api.onrender.com/health
+
+```json
+{
+  "status": "UP",
+  "services": {
+    "database": "UP",
+    "redis": "UP"
+  }
+}
+```
+
+---
+
+### Example deployed upload
+
+POST https://gogig-api.onrender.com/api/v1/images
+
+The API immediately returns HTTP 202 with a processing ID. The client can then poll the status endpoint and retrieve the final analysis result.
+
+---
+
 ## 📌 Executive Overview
 
 The **Intelligent Media Processing Pipeline** processes incoming vehicle and auto-rickshaw images captured from the field. Field uploads often suffer from low lighting, motion blur, duplicate submissions, screen captures, or digital tampering.
@@ -36,7 +68,7 @@ This system provides a non-blocking API that accepts uploads, generates unique p
       ├─► Indian License Plate Analyzer (Regex: [A-Z]{2}[0-9]{2}[A-Z]{1,3}[0-9]{4})
       ├─► Screenshot Analyzer (Aspect Ratios & Filename Heuristics)
       ├─► Tamper Analyzer (Editing Software Signatures)
-      └─► AI Vision Service (Google Gemini Vision API with Fallback)
+      └─► AI Vision Service (Google Gemini 2.5 Flash, optional with graceful failure handling)
       │
       │ 6. Aggregate unified JSON & update DB record (status: "completed")
       ▼
@@ -62,7 +94,7 @@ This system provides a non-blocking API that accepts uploads, generates unique p
   6. **Indian License Plate Validation**: RegEx pattern matching for standard registration numbers (`KA01AB1234`, `MH12DE1415`, `BH` series) and state code verification.
   7. **Screenshot Detection**: Detects common mobile/desktop aspect ratios (19.5:9, 20:9, 16:9), PNG format without EXIF, and screenshot filenames.
   8. **Tamper & Editing Heuristics**: Identifies software signatures from Photoshop, Canva, GIMP, Lightroom, Snapseed, or missing camera headers.
-- **Optional Gemini Vision AI**: Uses `gemini-1.5-flash` for high-level vehicle categorization and condition assessment with graceful fallback when key is missing or API fails.
+- **Optional Gemini Vision AI**: Uses `gemini-2.5-flash` for high-level vehicle categorization and condition assessment with graceful fallback when key is missing or API fails.
 - **Full REST API & Health Monitoring**: Dedicated status, result, failure reason, and health check endpoints.
 
 ---
@@ -75,9 +107,21 @@ This system provides a non-blocking API that accepts uploads, generates unique p
 | **Database & ORM** | PostgreSQL, Prisma ORM | Metadata & Results Persistence |
 | **Queue & Cache** | Redis, BullMQ | Asynchronous Background Processing |
 | **Image Processing** | Sharp, Tesseract.js, `image-hash`, `exif-reader` | Computer Vision & Heuristic Analysis |
-| **AI Integration** | `@google/generative-ai` (Gemini 1.5 Flash) | Visual Categorization & Verification |
+| **AI Integration** | `@google/generative-ai` (Gemini 2.5 Flash) | Visual Categorization & Verification |
 | **Testing** | Jest, Supertest | Unit & Integration Testing |
 | **Containerization** | Docker, Docker Compose | Multi-container Orchestration |
+
+---
+
+## Assumptions
+
+- Uploaded files are vehicle/auto-rickshaw images in JPEG, PNG, or WebP format.
+- Image verification is heuristic-based and is not intended to provide legal or regulatory vehicle verification.
+- OCR and AI results are probabilistic and may be incorrect for low-quality, oblique, or poorly illuminated images.
+- Indian license plate validation is based on recognized registration-format patterns and does not verify registration against a government database.
+- Duplicate detection primarily relies on exact SHA-256 matching, with perceptual hashing used for similarity analysis.
+- Local filesystem storage is used for the assignment deployment; object storage such as S3/R2 would be preferred for a multi-instance production deployment.
+- Gemini AI is optional. If the API key is unavailable or the external AI service fails, deterministic analysis continues and the result records the AI failure.
 
 ---
 
@@ -93,7 +137,7 @@ This system provides a non-blocking API that accepts uploads, generates unique p
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-repo/gogig-intelligent-media-pipeline.git
+git clone https://github.com/nayan777pratyush/gogig-intelligent-media-pipeline.git
 cd gogig-intelligent-media-pipeline
 
 # Install dependencies
@@ -225,7 +269,7 @@ curl -X POST http://localhost:3000/api/v1/images \
       "screenshot": { "isScreenshot": false, "confidenceScore": 0 },
       "tampering": { "isTampered": false, "tamperScore": 0 }
     },
-    "aiAnalysis": { "enabled": true, "aiProcessed": true, "modelUsed": "gemini-1.5-flash" },
+    "aiAnalysis": { "enabled": true, "aiProcessed": true, "modelUsed": "gemini-2.5-flash" },
     "overallAssessment": {
       "passedVerification": true,
       "qualityScore": 100,
@@ -290,7 +334,7 @@ Process all 3 sample vehicle images locally and update `docs/sample-results.md`:
 npm run process-samples
 ```
 
-See [docs/sample-results.md](file:///d:/Users/nayan/Gogig%20Assignment/docs/sample-results.md) for full raw execution results on all 3 sample images.
+See [docs/sample-results.md](docs/sample-results.md) for full sample processing results.
 
 ---
 
@@ -298,7 +342,7 @@ See [docs/sample-results.md](file:///d:/Users/nayan/Gogig%20Assignment/docs/samp
 
 As part of the assignment requirements, here is an explicit disclosure of AI usage during this project:
 
-- **AI Tools Used**: Google Gemini 1.5 Flash (for vision analysis API) and Antigravity AI pair programmer for system design and code implementation.
+- **AI Tools Used**: Google Gemini 2.5 Flash (for vision analysis API) and Antigravity AI pair programmer for system design and code implementation.
 - **What AI Helped With**:
   - Structuring clean Express middleware, BullMQ queue events, and error boundary isolation.
   - Designing multi-layer heuristic algorithms for sharpness variance, perceptual hashing, and Indian license plate regex.
