@@ -1,0 +1,49 @@
+{
+  "name": "gogig-intelligent-media-pipeline",
+  "version": "1.0.0",
+  "description": "Asynchronous media processing pipeline for vehicle image verification and quality assessment",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "worker": "node src/processors/image.processor.js",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit",
+    "process-samples": "node scripts/process-samples.js"
+  },
+  "keywords": [
+    "express",
+    "prisma",
+    "bullmq",
+    "redis",
+    "sharp",
+    "tesseract",
+    "vehicle-verification",
+    "gemini-vision"
+  ],
+  "author": "Gogig AI Engineering Candidate",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@prisma/client": "^5.20.0",
+    "bullmq": "^5.12.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "exif-reader": "^2.0.1",
+    "express": "^4.21.0",
+    "image-hash": "^5.3.2",
+    "ioredis": "^5.4.1",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.33.5",
+    "tesseract.js": "^5.1.1",
+    "uuid": "^10.0.0",
+    "winston": "^3.14.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "prisma": "^5.20.0",
+    "supertest": "^7.0.0"
+  }
+}

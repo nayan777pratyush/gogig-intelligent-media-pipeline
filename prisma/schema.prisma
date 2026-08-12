@@ -1,0 +1,33 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Image {
+  id                    String    @id @default(uuid())
+  originalName          String
+  filePath              String
+  mimeType              String
+  size                  Int
+  width                 Int?
+  height                Int?
+  hash                  String?   
+  perceptualHash        String?   
+  status                String    // pending | processing | completed | failed
+  failureReason         String?
+  failureCategory       String?
+  retryCount            Int       @default(0)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  processingStartedAt   DateTime?
+  processingCompletedAt DateTime?
+  result                Json?
+
+  @@index([hash])
+  @@index([status])
+  @@index([createdAt])
+}
