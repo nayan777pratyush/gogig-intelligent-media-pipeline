@@ -125,6 +125,33 @@ This system provides a non-blocking API that accepts uploads, generates unique p
 
 ---
 
+## Production Test Evidence
+
+Complete production API test results using all three provided sample images are available in:
+
+- [Production Test Results](./docs/production-test-results.md)
+- [Sample API Results](./docs/sample-results.md)
+
+The production test evidence includes:
+- Health check
+- All 3 sample image uploads
+- Asynchronous processing and status polling
+- Final result retrieval
+- OCR
+- Blur detection
+- Metadata analysis
+- Duplicate detection
+- Tampering detection
+- Brightness analysis
+- Screenshot detection
+- License plate analysis
+- Gemini AI vehicle analysis
+- Missing-file validation
+- Invalid-file-type validation
+- Invalid processing-ID validation
+
+---
+
 ## ⚡ Quick Start & Setup Instructions
 
 ### Prerequisites
