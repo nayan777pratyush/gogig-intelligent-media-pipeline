@@ -6,6 +6,18 @@
 
 ## Live Deployment
 
+| Component | URL |
+|---|---|
+| **Frontend** | https://gogig-frontend.onrender.com |
+| **Backend API** | https://gogig-api.onrender.com |
+| **Health Check** | https://gogig-api.onrender.com/health |
+
+### 🚀 Live Demo
+
+**Frontend:**  
+https://gogig-frontend.onrender.com
+
+**Backend API:**  
 The API is deployed on Render:
 
 **Base URL:** https://gogig-api.onrender.com
