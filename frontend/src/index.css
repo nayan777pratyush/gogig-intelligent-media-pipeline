@@ -1,0 +1,11 @@
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+}
+
+::selection {
+  background: rgba(139, 112, 255, 0.35);
+}
