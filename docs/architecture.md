@@ -61,7 +61,7 @@ graph TD
 8. **Tamper & Editing Detection (`tamper.analyzer.js`)**: Flags software tags specifying graphics software (Photoshop, Canva, GIMP, Lightroom, Snapseed).
 
 ### 2.4 Optional AI Vision Integration (`src/services/ai.service.js`)
-- Uses **Google Gemini Vision API** (`gemini-1.5-flash`).
+- Uses **Google Gemini Vision API** (`gemini-2.5-flash`).
 - Returns structured categorization (Vehicle Type, Make/Model candidate, plate legibility, overall vehicle condition).
 - Features **graceful fallback**: If `GEMINI_API_KEY` is missing or fails, the pipeline safely completes using deterministic checks without failing.
 

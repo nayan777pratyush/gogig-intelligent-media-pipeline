@@ -367,31 +367,178 @@ See [docs/sample-results.md](docs/sample-results.md) for full sample processing 
 
 ## 🤖 Mandatory AI Usage Disclosure
 
-As part of the assignment requirements, here is an explicit disclosure of AI usage during this project:
+AI tools were used during the development of this project for both implementation
+assistance and application-level image analysis. All AI-assisted output was
+reviewed, integrated, tested, and validated by the developer.
 
-- **AI Tools Used**: Google Gemini 2.5 Flash (for vision analysis API) and Antigravity AI pair programmer for system design and code implementation.
-- **What AI Helped With**:
-  - Structuring clean Express middleware, BullMQ queue events, and error boundary isolation.
-  - Designing multi-layer heuristic algorithms for sharpness variance, perceptual hashing, and Indian license plate regex.
-  - Formulating structured JSON prompt engineering for Gemini Vision API.
-- **Where AI Output Was Wrong / Adjusted**:
-  - Initial proposal used `@google/genai` npm package version that did not exist on public npm. Corrected to official `@google/generative-ai` package.
-  - Initial blur heuristic used simple gradient magnitude which produced false positives on high-contrast auto-rickshaw stripes; upgraded to 3x3 Laplacian kernel convolution variance.
-- **Validation**: Every AI-assisted module was validated through unit tests (`npm test`) and verified against actual sample vehicle images.
+### AI Tools Used
+
+- **Antigravity AI** — Used as a development/pair-programming assistant during
+  implementation, debugging, documentation, and architectural discussions.
+- **Google Gemini 2.5 Flash** — Integrated into the application as an optional
+  Vision AI service for vehicle categorization, license-plate interpretation,
+  make/model estimation, and overall vehicle-condition assessment.
+
+### How AI Assisted During Development
+
+Antigravity AI was used primarily as a coding and engineering assistant for:
+
+- Discussing the overall asynchronous processing architecture using Express,
+  PostgreSQL, Redis, BullMQ, and background workers.
+- Assisting with implementation patterns for Express controllers, middleware,
+  queue processing, error handling, and service separation.
+- Reviewing and improving image-analysis logic, including blur detection,
+  brightness analysis, duplicate detection, OCR processing, screenshot
+  heuristics, tamper detection, and Indian license-plate validation.
+- Assisting with API response structures, error handling, retry behaviour, and
+  project documentation.
+- Helping identify implementation issues during development and suggesting
+  alternative approaches that were then tested against the actual application.
+
+AI-generated suggestions were not treated as authoritative. Code and design
+decisions were reviewed and modified where necessary based on the actual
+requirements, runtime behaviour, test results, and production API responses.
+
+### Application-Level Gemini Vision AI
+
+Google Gemini 2.5 Flash is an optional component of the deployed processing
+pipeline. It is invoked after the deterministic image checks and provides
+higher-level visual interpretation such as:
+
+- Vehicle type classification
+- Make/model candidate identification
+- License-plate text and legibility assessment
+- Vehicle condition assessment
+- Additional visual observations
+
+The deterministic analyzers remain independent of the AI service. If the Gemini
+API is unavailable, fails, or the API key is not configured, the pipeline
+continues processing and returns the deterministic analysis instead of failing
+the entire image-processing job.
+
+### AI Output Review and Corrections
+
+AI-generated suggestions were reviewed against the actual project requirements
+and runtime behaviour. During development, approaches suggested by AI were
+changed when they did not match the project's dependencies, image-processing
+behaviour, or required output.
+
+Examples include:
+
+- Dependency/API usage was checked against the packages actually installed in
+  the project rather than accepting generated import or package suggestions
+  blindly.
+- Image-analysis heuristics were evaluated against the supplied vehicle images
+  and adjusted when the observed behaviour did not provide sufficiently useful
+  results.
+- API contracts, queue behaviour, error responses, and database interactions
+  were verified through actual execution rather than relying only on
+  AI-generated code.
+
+### Validation
+
+AI-assisted implementation was validated through:
+
+- Automated Jest/Supertest tests
+- Local API and worker execution
+- PostgreSQL and Redis integration
+- Processing of all three supplied sample images
+- Production deployment on Render
+- Production API health checks
+- Production upload, asynchronous status polling, and result retrieval
+- Edge-case testing for missing files, invalid file types, and unknown
+  processing IDs
+
+The production test evidence is documented in
+[`docs/production-test-results.md`](./docs/production-test-results.md).
+
+AI was therefore used as a development and analysis aid, but the final
+implementation, integration decisions, testing, and verification were performed
+against the actual running system.
 
 ---
 
 ## ⚖️ Trade-offs & Engineering Decisions
 
-1. **Laplacian Variance vs Heavy ML Model for Blur**:
-   - *Trade-off*: Used Sharp-based 3x3 Laplacian variance calculation rather than loading PyTorch/TensorFlow models.
-   - *Reasoning*: Extremely fast execution (<20ms per image), zero GPU overhead, perfect for high-throughput microservices.
-2. **Regex + Tesseract.js vs Custom License Plate Model**:
-   - *Trade-off*: OCR text regex parsing instead of custom YOLO license plate detector.
-   - *Reasoning*: Keeps installation footprint lightweight while providing reliable verification for standard Indian vehicle numbers (`KA01...`, `MH12...`).
-3. **Local Disk Storage vs S3 Cloud Storage**:
-   - *Trade-off*: Default implementation saves files locally in `uploads/`.
-   - *Reasoning*: Simplifies single-command local testing (`docker-compose up`). Abstracted behind `StorageService` for zero-code-change migration to AWS S3 / Cloudflare R2 in production.
+### 1. Laplacian Variance vs. Heavy ML Model for Blur Detection
+
+- **Trade-off:** Used Sharp-based Laplacian variance to estimate image
+  sharpness instead of introducing a dedicated PyTorch/TensorFlow blur
+  classification model.
+- **Reasoning:** Laplacian variance is lightweight, deterministic, CPU-based,
+  and easy to deploy in a Node.js service. It avoids GPU requirements,
+  additional model files, and ML inference overhead while providing a useful
+  sharpness signal for the verification pipeline.
+- **Limitation:** It is a heuristic rather than a semantic understanding of
+  image quality, so the threshold may need calibration for different image
+  types and use cases.
+
+### 2. Tesseract.js + Indian Plate Regex vs. Custom License-Plate Detection Model
+
+- **Trade-off:** Used Tesseract.js OCR followed by Indian license-plate format
+  validation instead of introducing a dedicated YOLO/custom license-plate
+  detection model.
+- **Reasoning:** This keeps the implementation and deployment footprint
+  relatively lightweight while still providing a deterministic validation
+  layer for common Indian registration-number formats.
+- **Limitation:** OCR quality depends heavily on image quality, plate
+  orientation, lighting, and text visibility. Therefore, the regex-based
+  validation is treated as one signal rather than a definitive plate detector.
+  Gemini Vision can provide an additional interpretation when enabled.
+
+### 3. Local Disk Storage vs. Object Storage
+
+- **Trade-off:** The default implementation stores uploaded files on local
+  disk under `uploads/` rather than immediately introducing AWS S3, Cloudflare
+  R2, or another object-storage service.
+- **Reasoning:** Local storage keeps the project simple to run locally and with
+  Docker Compose, while the storage logic is isolated behind `StorageService`.
+  This makes it possible to replace the persistence implementation with an
+  object-storage provider without changing the controller or processing
+  pipeline.
+- **Limitation:** Local disk storage is not suitable for horizontally scaled
+  production instances because files are tied to a particular instance.
+  Object storage would be the preferred approach for a multi-instance
+  production deployment.
+
+### 4. Deterministic Analyzers vs. AI-Only Verification
+
+- **Trade-off:** Kept deterministic image analyzers as the primary verification
+  layer and used Gemini Vision as an additional high-level analysis layer
+  rather than making the entire pipeline dependent on an AI model.
+- **Reasoning:** Deterministic checks such as hashing, brightness, metadata,
+  blur, OCR, and duplicate detection are predictable, testable, and continue
+  working even when the AI service is unavailable.
+- **Limitation:** Heuristic analyzers cannot provide the same semantic
+  understanding as a vision model. Conversely, AI output can be probabilistic
+  and dependent on external API availability. Keeping both layers allows the
+  system to degrade gracefully when Gemini is unavailable.
+
+### 5. Redis + BullMQ vs. Synchronous Processing
+
+- **Trade-off:** Image analysis is performed asynchronously using Redis and
+  BullMQ rather than processing the complete image synchronously inside the
+  upload request.
+- **Reasoning:** OCR, image analysis, and Gemini inference can take
+  significantly longer than a normal HTTP request. Returning `202 Accepted`
+  with a processing ID allows the API to remain responsive while workers
+  process jobs independently. BullMQ also provides retry and backoff
+  capabilities.
+- **Limitation:** Clients must perform status polling or use another
+  notification mechanism instead of receiving the final result in the initial
+  request.
+
+### 6. PostgreSQL vs. a NoSQL Database
+
+- **Trade-off:** Used PostgreSQL for processing records and structured
+  analysis results instead of introducing a document-oriented database.
+- **Reasoning:** The system has well-defined entities and relationships around
+  uploaded images, processing states, retries, timestamps, and analysis
+  results. PostgreSQL provides strong consistency and straightforward
+  querying for these records while Prisma provides a typed data-access layer.
+- **Limitation:** Highly flexible or extremely large unstructured analysis
+  payloads may eventually benefit from a different persistence strategy, but
+  PostgreSQL is sufficient for the current scope.
 
 ---
 
