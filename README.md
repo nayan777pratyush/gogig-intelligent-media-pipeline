@@ -48,6 +48,12 @@ The API immediately returns HTTP 202 with a processing ID. The client can then p
 
 ---
 
+## Future Work
+
+See the planned ML, license-plate, tampering, and verification improvements:
+
+[Future Work & ML Roadmap](./docs/FUTURE_WORK.md)
+
 ## 📌 Executive Overview
 
 The **Intelligent Media Processing Pipeline** processes incoming vehicle and auto-rickshaw images captured from the field. Field uploads often suffer from low lighting, motion blur, duplicate submissions, screen captures, or digital tampering.
