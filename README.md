@@ -18,8 +18,7 @@
 https://gogig-frontend.onrender.com
 
 **Backend API:**  
-The API is deployed on Render:
--**Base URL:** https://gogig-api.onrender.com
+The API is deployed on Render: **Base URL:** https://gogig-api.onrender.com
 
 ### Health Check
 
@@ -47,7 +46,7 @@ The API immediately returns HTTP 202 with a processing ID. The client can then p
 
 ---
 
-## ## Upcoming Features
+### Upcoming Features
 - Machine Learning integration
 - License Plate Recognition (LPR)
 - Tampering Detection
